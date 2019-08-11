@@ -12,7 +12,7 @@ bills = 'Label_181438259144754670'
 reciepts = 'Label_6181614655454590488'
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/gmail.readonly']
+SCOPES = ['https://www.googleapis.com/auth/gmail.modify']
 
 def verifyCreds() :
     creds = None
@@ -50,6 +50,7 @@ def getSpectrum() :
                             dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(Debit Date)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                             amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(Amount Due)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
                             print(dateDue + '\n' + amountDue)
+                            service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                             return (dateDue, amountDue)
 
 def getWaterBill() :
@@ -71,6 +72,7 @@ def getWaterBill() :
                             dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(DUE DATE:)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                             amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(AMOUNT DUE:)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
                             print(dateDue + '\n' + amountDue)
+                            service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                             return (dateDue, amountDue)
 
 # A sort of useless function just for testing and learning gmail API
@@ -91,6 +93,7 @@ def getElectricBill() :
                         dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(Due Date:)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                         amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(Total Amount Due:)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
                         print(dateDue + '\n' + amountDue)
+                        service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                         return (dateDue, amountDue)
 
 
