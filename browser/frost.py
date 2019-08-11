@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait # available since 2.4.0
+from selenium.webdriver.support import expected_conditions as EC # available since 2.26.0
 from selenium.webdriver.support.ui import Select
 
 import time
@@ -18,8 +18,8 @@ driver.get("https://www.frostbank.com/")
 # finds elements that require login and password then logs into the account
 userNameInput = driver.find_element_by_name("userName")
 passwordInput = driver.find_element_by_name("password")
-userNameInput.send_keys(creds.frostName)
-passwordInput.send_keys(creds.frostPass)
+userNameInput.send_keys(creds.username)
+passwordInput.send_keys(creds.password)
 time.sleep(5)
 driver.find_element_by_id("login-button").click()
 time.sleep(5)
@@ -48,9 +48,8 @@ for index, inputBox in enumerate(selectors) :
         option.click()
 
 print(accounts)
-
 amountInput = driver.find_element_by_name("amount")
-amountInput.send_keys("3.87") # amount that will be transferred
+amountInput.send_keys("") # amount that will be transferred
 memoInput = driver.find_element_by_name("consumerMemo")
 memoInput.send_keys("PayBillsScript")
 driver.find_element_by_id("mma").click() # goes to the final submit page
@@ -64,6 +63,9 @@ print("Logging out")
 try:
     # we have to wait for the page to refresh, the last thing that seems to be updated is the title
     WebDriverWait(driver, 10).until(EC.title_contains("Log Out"))
+
+    # You should see "cheese! - Google Search"
+    print(driver.title)
 
 finally:
     print("Quit")
