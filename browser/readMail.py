@@ -1,12 +1,12 @@
+from googleapiclient.discovery import build
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
 from __future__ import print_function
 import pickle
 import os.path
 import base64
 import email
 import re
-from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 
 bills = 'Label_181438259144754670'
 reciepts = 'Label_6181614655454590488'
