@@ -1,5 +1,7 @@
-import creds
 import pymysql
+
+import creds
+import readMail
 
 db = pymysql.connect("localhost","root", creds.emailPass ,"financeDB")
 
@@ -31,6 +33,7 @@ date = [ '2019', '08', '19' ]
 
 query = "SELECT * FROM bills WHERE MONTH = '%s-%s'" % (date[0], date[1])
 newEntry = """INSERT INTO bills (MONTH, PAID, RENT) VALUES ('2019-08', 0, 940.00)"""
+bills = []
 
 try:
 
@@ -43,10 +46,40 @@ try:
 
 
     print("ROW COUNT: %i" % (cursor.rowcount))
+    # Queries for the row that correlates with system date
     result = cursor.fetchone()
+
+    # Checks email for bills
     if result[1] != 1 :
-        for column in result :
-            print(column)
+        if result[5] == None : # SPECTRUM
+            spectrum = readMail.getSpectrumBill()
+            if spectrum != None :
+                result[5] = float(spectrum[1])
+                bills.append(('SPECTRUM', spectrum[1]))
+        if result[6] == None : # WATER
+            water = readMail.getWaterBill()
+            if water != None :
+                result[6] = float(water[1])
+                bills.append(('WATER', water[1]))
+        if result[7] == None : # ELECTRIC
+            electric = readMail.getElectricBill()
+            if electric != None :
+                result[7] = float(electric[1])
+                bills.append(('ELECTRIC', electric[1]))
+
+    print(bills)
+
+    insert = []
+    for bill in bills :
+        insert.append("%s = %s" % (bill[0], bill[1]))
+    insert = ", ".join(insert)
+    insertBills = "UPDATE bills SET %s WHERE MONTH = '%s-%s'" % (insert, date[0], date[1])
+    cursor.execute(insertBills)
+    db.commit()
+
+    print(result[5])
+    print(result[6])
+    print(result[7])
 
     # Commit your changes in the database
     # db.commit()

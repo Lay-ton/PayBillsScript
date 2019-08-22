@@ -1,7 +1,7 @@
+from __future__ import print_function
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-from __future__ import print_function
 import pickle
 import os.path
 import base64
@@ -31,7 +31,7 @@ def verifyCreds() :
 
     return creds
 
-def getSpectrum() :
+def getSpectrumBill() :
     # Call the Gmail API and looks at all emails that have Spectrum in the subject
     service = build('gmail', 'v1', credentials=verifyCreds())
     results = service.users().messages().list(userId='me',labelIds=['UNREAD'], q=['subject: Spectrum']).execute()
@@ -42,16 +42,17 @@ def getSpectrum() :
         headers=msg["payload"]["headers"]
         for subject in headers :
             if subject["name"] == "Subject":
-                print(subject['value'])
+                #print(subject['value'])
                 if re.search("Spectrum", subject['value']) : # Spectrum (internet bill)
                     for part in msg['payload']['parts'] :
                         if part['mimeType'] == "text/plain" :
                             textBody = (base64.urlsafe_b64decode(part['body']['data'].encode('ASCII'))).decode('utf-8')
                             dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(Debit Date)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                             amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(Amount Due)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
-                            print(dateDue + '\n' + amountDue)
-                            service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
+                            #print(dateDue + '\n' + amountDue)
+                            #service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                             return (dateDue, amountDue)
+    return None
 
 def getWaterBill() :
     # Call the Gmail API and looks at all emails that have Current Bill Period in the subject
@@ -64,18 +65,18 @@ def getWaterBill() :
         headers=msg["payload"]["headers"]
         for subject in headers :
             if subject["name"] == "Subject":
-                print(subject['value'])
+                #print(subject['value'])
                 if re.search("(Current Bill Period)", subject['value']) : # Utilities (water bill)
                     for part in msg['payload']['parts'] :
                         if part['mimeType'] == "multipart/alternative" :
                             textBody = (base64.urlsafe_b64decode(part["parts"][0]["body"]["data"].encode('ASCII'))).decode('utf-8')
                             dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(DUE DATE:)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                             amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(AMOUNT DUE:)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
-                            print(dateDue + '\n' + amountDue)
-                            service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
+                            #print(dateDue + '\n' + amountDue)
+                            #service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                             return (dateDue, amountDue)
+    return None
 
-# A sort of useless function just for testing and learning gmail API
 def getElectricBill() :
     # Call the Gmail API and looks at all emails that have Utilities in the subject
     service = build('gmail', 'v1', credentials=verifyCreds())
@@ -86,17 +87,18 @@ def getElectricBill() :
         headers=msg["payload"]["headers"]
         for subject in headers :
             if subject["name"] == "Subject":
-                print(subject['value'])
+                #print(subject['value'])
                 if re.search("Utilities", subject['value']) :
                     if msg['payload']['mimeType'] == "text/html" : # Utilities (electric bill)
                         textBody = (base64.urlsafe_b64decode(msg['payload']['body']['data'].encode('ASCII'))).decode('utf-8')
                         dateDue = re.search("([0-9]+\/[0-9]+\/[0-9]+)", re.search("(Due Date:)(.*)([0-9]+\/[0-9]+\/[0-9]+)", textBody).group()).group()
                         amountDue = re.search("([0-9]+\.[0-9]+)", re.search("(Total Amount Due:)(.*)([0-9]+\.[0-9]+)", textBody).group()).group()
-                        print(dateDue + '\n' + amountDue)
-                        service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
+                        #print(dateDue + '\n' + amountDue)
+                        #service.users().messages().modify(userId='me', id=message['id'], body={ 'removeLabelIds': ['UNREAD']}).execute()
                         return (dateDue, amountDue)
+    return None
 
-
+# A sort of useless function just for testing and learning gmail API
 def getAllBills() :
     # Call the Gmail API and looks at all emails that are unread in Bills or Receipts
     service = build('gmail', 'v1', credentials=verifyCreds())
