@@ -2,6 +2,7 @@ import pymysql
 
 import creds
 import readMail
+import frost
 
 db = pymysql.connect("localhost","root", creds.emailPass ,"financeDB")
 
@@ -29,10 +30,10 @@ cursor = db.cursor()
 #           If receipt, mark as paid and put the date in the datebase. END
 
 # Need a to get date from system and break it up like this
-date = [ '2019', '08', '19' ]
+date = [ '2019', '08', '22' ]
 
 query = "SELECT * FROM bills WHERE MONTH = '%s-%s'" % (date[0], date[1])
-newEntry = """INSERT INTO bills (MONTH, PAID, RENT) VALUES ('2019-08', 0, 940.00)"""
+newEntry = """INSERT INTO bills (MONTH, PAID, RENT) VALUES ('2019-08', 0, 942.95)"""
 bills = []
 
 try:
@@ -47,7 +48,7 @@ try:
 
     print("ROW COUNT: %i" % (cursor.rowcount))
     # Queries for the row that correlates with system date
-    result = cursor.fetchone()
+    result = list(cursor.fetchone())
 
     # Checks email for bills
     if result[1] != 1 :
@@ -67,22 +68,41 @@ try:
                 result[7] = float(electric[1])
                 bills.append(('ELECTRIC', electric[1]))
 
-    print(bills)
+        # Gets all the bills found in the email and adds them to database
+        if len(bills) != 0 :
+            insert = []
+            for bill in bills :
+                insert.append("%s = %s" % (bill[0], bill[1]))
+            insert = ", ".join(insert)
+            insertBills = "UPDATE bills SET %s WHERE MONTH = '%s-%s'" % (insert, date[0], date[1])
+            cursor.execute(insertBills)
+            db.commit()
 
-    insert = []
-    for bill in bills :
-        insert.append("%s = %s" % (bill[0], bill[1]))
-    insert = ", ".join(insert)
-    insertBills = "UPDATE bills SET %s WHERE MONTH = '%s-%s'" % (insert, date[0], date[1])
-    cursor.execute(insertBills)
-    db.commit()
+        # If all bills are present, calculate the total to be paid and set it in the database
+        if result[5] and result[6] and result[7] :
+            totalPaid = float(result[4])
+            for item in result[5:] :
+                totalPaid += item
+            totalPaid = round(totalPaid, 2)
+            insertTotal = "UPDATE bills SET TOTAL_PAID = %f WHERE MONTH = '%s-%s'" % (totalPaid, date[0], date[1])
+            cursor.execute(insertTotal)
+            db.commit()
 
-    print(result[5])
-    print(result[6])
-    print(result[7])
+            # Transfer & Pay Rent and Water
+            print("TRANSFER")
+            # frost.frostTransfer(totalPaid)
 
-    # Commit your changes in the database
-    # db.commit()
+            # Get the paylease reciept then mark paid with 1 and set the paid date
+            print("PAY RENT & WATER")
+            rentWater = float(result[4]) + float(result[6])
+            # paylease.payLeaseRent(rentWater)
+
+            # Look through email for reciept then mark as paid and set date
+            fullDate = "-".join(date)
+            insertPaid = "UPDATE bills SET PAID = 1, DATE_PAID = '%s' WHERE MONTH = '%s-%s'" % (fullDate, date[0], date[1])
+            cursor.execute(insertPaid)
+            db.commit()
+
 except:
     # Rollback in case there is any error
     print("Query not found")

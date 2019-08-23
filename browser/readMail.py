@@ -126,7 +126,7 @@ def getAllBills() :
                                 print(amountDue.group())
                                 break
 
-                    elif re.search("(Current Bill Period)", subject['value']) : # # Utilities (water bill)
+                    elif re.search("(Current Bill Period)", subject['value']) : # Utilities (water bill)
                         for part in msg['payload']['parts'] :
                             print(part['mimeType'])
                             if part['mimeType'] == "multipart/alternative" :
@@ -145,8 +145,6 @@ def getAllBills() :
                             print(dateDue.group())
                             print(amountDue.group())
 
-
-if __name__ == '__main__':
-    getSpectrum()
-    getWaterBill()
-    getElectricBill()
+# TODO ----------------------------------------
+# Need to write a funciton to get the paylease reciept confirm that the bill was paid in db
+# TODO ----------------------------------------
